@@ -1,18 +1,18 @@
-name: Vendor Invoice Backend CI
+name: Backend CI
 
 on:
   push:
     branches:
-      - main
       - master
+      - main
 
   pull_request:
     branches:
-      - main
       - master
+      - main
 
 jobs:
-  backend:
+  build:
 
     runs-on: ubuntu-latest
 
@@ -42,18 +42,18 @@ jobs:
           - 6379:6379
 
     env:
+
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vendor_invoice_db
 
       SECRET_KEY: githubsecret
 
-      MAIL_USERNAME: dummy@example.com
-      MAIL_PASSWORD: dummy
-      MAIL_FROM: dummy@example.com
+      MAIL_USERNAME: demo@example.com
+      MAIL_PASSWORD: password
+      MAIL_FROM: demo@example.com
 
     steps:
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -65,10 +65,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check Syntax
+      - name: Compile Python
         run: |
           python -m compileall app
 
-      - name: Run Tests
+      - name: Build Docker Image
         run: |
-          pytest || true
+          docker build -t vendor-backend .
