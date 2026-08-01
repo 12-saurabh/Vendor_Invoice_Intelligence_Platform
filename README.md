@@ -516,7 +516,7 @@ Planned features:
 
 **Saurabh Kumar**
 
-B.Tech Computer Science Engineering
+B.Tech Information Technology
 
 National Institute of Technology Raipur
 
