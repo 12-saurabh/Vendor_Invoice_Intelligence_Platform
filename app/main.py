@@ -23,7 +23,31 @@ from app.routers import (
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Vendor Invoice Intelligence System"
+    title="Vendor Invoice Intelligence Platform",
+    description="""
+## Production-ready Vendor Invoice Management System
+
+### Features
+- JWT Authentication
+- Vendor Management
+- Invoice OCR
+- ML Predictions
+- Approval Workflow
+- Dashboard Analytics
+- Reports
+- CSV / Excel / PDF Export
+- WebSocket Notifications
+- Prometheus Metrics
+
+""",
+    version="1.0.0",
+    contact={
+        "name": "Saurabh Kumar",
+        "email": "your_email@example.com",
+    },
+    license_info={
+        "name": "MIT",
+    },
 )
 
 app.include_router(vendor.router)

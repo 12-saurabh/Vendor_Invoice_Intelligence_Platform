@@ -15,7 +15,7 @@ from app.schemas.prediction import PredictionResponse
 
 router = APIRouter(
     prefix="/prediction",
-    tags=["Prediction"],
+    tags=["ML Prediction"],
 )
 
 

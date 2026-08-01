@@ -45,7 +45,7 @@ router = APIRouter(
 
     prefix="/upload",
 
-    tags=["Upload"]
+    tags=["OCR Upload"]
 
 )
 

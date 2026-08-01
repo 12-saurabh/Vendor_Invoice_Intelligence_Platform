@@ -41,7 +41,7 @@ router = APIRouter(
 
     prefix="/approval",
 
-    tags=["Approval"]
+    tags=["Approval Workflow"]
 
 )
 
