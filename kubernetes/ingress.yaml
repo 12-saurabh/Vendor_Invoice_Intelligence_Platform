@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+
+metadata:
+
+  name: vendor-invoice-ingress
+
+  namespace: vendor-invoice
+
+
+  annotations:
+
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+
+
+spec:
+
+
+  ingressClassName: nginx
+
+
+  rules:
+
+
+  - host: vendor-invoice.local
+
+
+    http:
+
+
+      paths:
+
+
+      - path: /
+
+        pathType: Prefix
+
+
+        backend:
+
+
+          service:
+
+
+            name: backend-service
+
+
+            port:
+
+
+              number: 8000
