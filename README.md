@@ -516,7 +516,7 @@ Planned features:
 
 **Saurabh Kumar**
 
-B.Tech Information Technology
+B.Tech (Information Technology)
 
 National Institute of Technology Raipur
 
