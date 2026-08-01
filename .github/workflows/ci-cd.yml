@@ -1,0 +1,147 @@
+name: Vendor Invoice Platform CI/CD
+
+
+# Trigger pipeline
+on:
+
+  push:
+
+    branches:
+      - master
+
+
+  pull_request:
+
+    branches:
+      - master
+
+
+
+jobs:
+
+
+# ----------------------------
+# Backend Testing
+# ----------------------------
+
+  test-backend:
+
+    name: Backend Tests
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+
+    - name: Checkout Code
+
+      uses: actions/checkout@v4
+
+
+
+    - name: Setup Python
+
+      uses: actions/setup-python@v5
+
+      with:
+
+        python-version: "3.11"
+
+
+
+    - name: Install Dependencies
+
+      working-directory: backend
+
+      run: |
+
+        pip install -r requirements.txt
+
+
+
+    - name: Run Tests
+
+      working-directory: backend
+
+      run: |
+
+        pytest
+
+
+
+# ----------------------------
+# Docker Build
+# ----------------------------
+
+
+  docker-build:
+
+
+    name: Build Docker Image
+
+    needs: test-backend
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+
+    - name: Checkout Code
+
+      uses: actions/checkout@v4
+
+
+
+    - name: Docker Build
+
+      working-directory: backend
+
+      run: |
+
+
+        docker build \
+
+        -t vendor-backend:${{ github.sha }} .
+
+
+
+# ----------------------------
+# Kubernetes Deployment
+# ----------------------------
+
+
+  deploy:
+
+
+    name: Deploy Kubernetes
+
+
+    needs: docker-build
+
+
+    runs-on: ubuntu-latest
+
+
+
+    steps:
+
+
+    - name: Checkout Code
+
+      uses: actions/checkout@v4
+
+
+
+    - name: Deploy Application
+
+
+      run: |
+
+
+        echo "Deploying Kubernetes Resources"
+
+
+
+        kubectl apply -f kubernetes/
