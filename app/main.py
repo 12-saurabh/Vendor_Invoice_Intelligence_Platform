@@ -25,7 +25,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="Vendor Invoice Intelligence Platform",
     description="""
-## Production-ready Vendor Invoice Management System
+## Production-ready Vendor Invoice Intelligence Platform
 
 ### Features
 - JWT Authentication
