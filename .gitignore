@@ -6,4 +6,5 @@ venv/
 .vscode/
 .pytest_cache/
 *.sqlite3
-frontend/.env.production
+frontend/.env.productionbackend/uploads/
+backend/exports/
