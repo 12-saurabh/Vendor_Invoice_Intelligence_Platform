@@ -1,0 +1,43 @@
+.monitoring-page{
+
+    padding:30px;
+
+    background:#f5f7fb;
+
+    min-height:100vh;
+
+}
+
+
+.monitoring-header{
+
+    margin-bottom:25px;
+
+}
+
+
+.monitoring-header h1{
+
+    font-size:32px;
+
+}
+
+
+.grafana-container{
+
+    background:white;
+
+    border-radius:15px;
+
+    padding:20px;
+
+    box-shadow:0 5px 20px rgba(0,0,0,.1);
+
+}
+
+
+iframe{
+
+    border-radius:10px;
+
+}

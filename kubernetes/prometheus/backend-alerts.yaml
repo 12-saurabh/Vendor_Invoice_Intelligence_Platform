@@ -1,0 +1,51 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vendor-invoice-backend-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: vendor-invoice-backend
+      rules:
+
+        - alert: VendorInvoiceBackendDown
+          expr: sum(up{job="backend-service"}) == 0
+          for: 1m
+          labels:
+            severity: critical
+            service: vendor-invoice-backend
+          annotations:
+            summary: "Vendor Invoice backend is down"
+            description: "All Vendor Invoice backend instances are unavailable."
+
+        - alert: VendorInvoiceBackendHighErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{
+                job="backend-service",
+                status=~"5xx"
+              }[5m]))
+              /
+              sum(rate(http_requests_total{
+                job="backend-service"
+              }[5m]))
+            ) > 0.05
+          for: 2m
+          labels:
+            severity: warning
+            service: vendor-invoice-backend
+          annotations:
+            summary: "High backend HTTP 5xx error rate"
+            description: "More than 5% of backend requests are returning HTTP 5xx errors."
+
+        - alert: VendorInvoiceBackendNoTraffic
+          expr: sum(rate(http_requests_total{job="backend-service"}[5m])) == 0
+          for: 5m
+          labels:
+            severity: warning
+            service: vendor-invoice-backend
+          annotations:
+            summary: "Vendor Invoice backend has no traffic"
+            description: "No HTTP traffic has been observed on the backend for 5 minutes."

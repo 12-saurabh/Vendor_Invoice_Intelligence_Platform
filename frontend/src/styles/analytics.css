@@ -1,0 +1,33 @@
+.analytics-page{
+
+padding:30px;
+
+background:#f8fafc;
+
+min-height:100vh;
+
+}
+
+.chart-grid{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:25px;
+
+margin-top:30px;
+
+}
+
+.chart-card{
+
+background:white;
+
+padding:25px;
+
+border-radius:15px;
+
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+}

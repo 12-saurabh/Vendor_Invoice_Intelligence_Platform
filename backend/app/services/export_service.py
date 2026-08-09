@@ -1,70 +1,105 @@
+import os
 import pandas as pd
-from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+
+
+EXPORT_DIR = "exports"
+os.makedirs(EXPORT_DIR, exist_ok=True)
 
 
 def export_csv(invoices):
-
-    data=[]
+    data = []
 
     for invoice in invoices:
         data.append({
-            "id":invoice.id,
-            "vendor":invoice.vendor_name,
-            "amount":invoice.total_amount,
-            "status":invoice.status
+            "Invoice ID": invoice.id,
+            "Invoice Number": invoice.invoice_number,
+            "Vendor": invoice.vendor_name,
+            "Amount": invoice.amount,
+            "Currency": invoice.currency,
+            "Status": invoice.status,
+            "Risk Score": invoice.risk_score,
+            "Risk Level": invoice.risk_level,
+            "Fraud Detected": invoice.fraud_detected,
+            "Duplicate Invoice": invoice.duplicate_invoice,
         })
 
-    df=pd.DataFrame(data)
+    df = pd.DataFrame(data)
 
-    path="exports/invoices.csv"
-
-    df.to_csv(path,index=False)
+    path = os.path.join(EXPORT_DIR, "invoices.csv")
+    df.to_csv(path, index=False)
 
     return path
-
 
 
 def export_excel(invoices):
-
-    data=[]
+    data = []
 
     for invoice in invoices:
         data.append({
-            "id":invoice.id,
-            "vendor":invoice.vendor_name,
-            "amount":invoice.total_amount,
+            "Invoice ID": invoice.id,
+            "Invoice Number": invoice.invoice_number,
+            "Vendor": invoice.vendor_name,
+            "Amount": invoice.amount,
+            "Currency": invoice.currency,
+            "Status": invoice.status,
+            "Risk Score": invoice.risk_score,
+            "Risk Level": invoice.risk_level,
+            "Fraud Detected": invoice.fraud_detected,
+            "Duplicate Invoice": invoice.duplicate_invoice,
         })
 
+    df = pd.DataFrame(data)
 
-    df=pd.DataFrame(data)
-
-    path="exports/invoices.xlsx"
-
-    df.to_excel(path,index=False)
+    path = os.path.join(EXPORT_DIR, "invoices.xlsx")
+    df.to_excel(path, index=False)
 
     return path
 
 
-
 def export_pdf(invoices):
+    path = os.path.join(EXPORT_DIR, "invoices.pdf")
 
-    path="exports/invoices.pdf"
-
-    pdf=canvas.Canvas(path)
-
-    y=800
+    rows = [
+        [
+            "ID",
+            "Invoice",
+            "Vendor",
+            "Amount",
+            "Currency",
+            "Status",
+            "Risk",
+            "Risk Level"
+        ]
+    ]
 
     for invoice in invoices:
+        rows.append([
+            str(invoice.id),
+            str(invoice.invoice_number),
+            str(invoice.vendor_name or ""),
+            str(invoice.amount),
+            str(invoice.currency or ""),
+            str(invoice.status),
+            str(invoice.risk_score or 0),
+            str(invoice.risk_level or "Low"),
+        ])
 
-        pdf.drawString(
-            50,
-            y,
-            f"{invoice.vendor_name} {invoice.total_amount}"
-        )
+    pdf = SimpleDocTemplate(path)
 
-        y-=30
+    table = Table(rows)
 
+    table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ])
+    )
 
-    pdf.save()
+    pdf.build([table])
 
     return path

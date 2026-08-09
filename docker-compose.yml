@@ -1,71 +1,212 @@
-version: "3.9"
-
 services:
-  
-    prometheus:
-      image: prom/prometheus
-      container_name: vendor-prometheus
 
-      ports:
-        - "9090:9090"
+  postgres:
+    image: postgres:16
+    container_name: vendor-postgres
 
-      volumes:
-        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
 
-      depends_on:
-        - backend
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: saurabh1209
+      POSTGRES_DB: vendor_invoice_db
 
-    grafana:
-      image: grafana/grafana
-      container_name: vendor-grafana
+    ports:
+      - "5432:5432"
 
-      ports:
-        - "3000:3000"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-      depends_on:
-        - prometheus
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U postgres"
+        ]
 
-    postgres:
-      image: postgres:16
-      container_name: vendor-postgres
-      restart: always
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-      environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: saurabh1209
-        POSTGRES_DB: vendor_invoice_db
 
-      ports:
-        - "5432:5432"
+  redis:
 
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
+    image: redis:7-alpine
 
-    redis:
-      image: redis:7-alpine
-      container_name: vendor-redis
+    container_name: vendor-redis
 
-      restart: always
+    restart: always
 
-      ports:
-        - "6379:6379"
+    ports:
+      - "6379:6379"
 
-    backend:
-      build: .
-      container_name: vendor-backend
 
-      depends_on:
-        - postgres
-        - redis
+    healthcheck:
 
-      ports:
-        - "8000:8000"
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
 
-      env_file:
-        - .env
+      interval: 10s
 
-      environment:
-        DATABASE_URL: postgresql://postgres:saurabh1209@postgres:5432/vendor_invoice_db
+      timeout: 5s
+
+      retries: 5
+
+
+
+  backend:
+
+    build: .
+
+    container_name: vendor-backend
+
+    restart: always
+
+
+    depends_on:
+
+      postgres:
+
+        condition: service_healthy
+
+
+      redis:
+
+        condition: service_started
+
+
+
+    ports:
+
+      - "8000:8000"
+
+
+
+    env_file:
+
+      - .env
+
+
+
+    environment:
+
+      DATABASE_URL:
+        postgresql://postgres:saurabh1209@postgres:5432/vendor_invoice_db
+
+
+      REDIS_HOST:
+
+        redis
+
+
+      REDIS_PORT:
+
+        6379
+
+
+
+    command:
+
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+
+
+  prometheus:
+
+
+    image: prom/prometheus
+
+
+    container_name: vendor-prometheus
+
+
+    restart: always
+
+
+
+    ports:
+
+      - "9090:9090"
+
+
+
+    volumes:
+
+
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+
+
+    depends_on:
+
+      - backend
+
+
+
+
+  grafana:
+
+
+    image: grafana/grafana
+
+
+    container_name: vendor-grafana
+
+
+    restart: always
+
+
+
+    ports:
+
+
+      - "3000:3000"
+
+
+
+    environment:
+
+
+      GF_SECURITY_ADMIN_USER: admin
+
+
+      GF_SECURITY_ADMIN_PASSWORD: admin
+
+
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+
+
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+
+
+
+    volumes:
+
+
+      - grafana_data:/var/lib/grafana
+
+
+      - ./grafana/provisioning:/etc/grafana/provisioning
+
+
+
+    depends_on:
+
+
+      - prometheus
+
+
+
+
 
 volumes:
+
+
   postgres_data:
+
+
+  grafana_data:

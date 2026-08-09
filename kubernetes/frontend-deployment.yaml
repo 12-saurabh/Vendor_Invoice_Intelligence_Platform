@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: vendor-frontend
+  namespace: vendor-invoice
+
+
+spec:
+
+  replicas: 2
+
+
+  selector:
+    matchLabels:
+      app: vendor-frontend
+
+
+  template:
+
+    metadata:
+      labels:
+        app: vendor-frontend
+
+
+    spec:
+
+      containers:
+
+      - name: frontend
+
+        image: vendor-frontend:v2
+
+        imagePullPolicy: Never
+
+
+        ports:
+
+        - containerPort: 80

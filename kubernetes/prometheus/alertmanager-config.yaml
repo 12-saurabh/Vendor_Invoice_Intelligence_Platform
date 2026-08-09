@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-monitoring-kube-prometheus-alertmanager
+  namespace: monitoring
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      group_by:
+        - alertname
+        - namespace
+        - service
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: vendor-invoice-webhook
+
+    receivers:
+      - name: vendor-invoice-webhook
+        webhook_configs:
+          - url: "http://alert-webhook.vendor-invoice.svc.cluster.local:8080/alerts"
+            send_resolved: true

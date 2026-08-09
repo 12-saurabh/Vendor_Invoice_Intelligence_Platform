@@ -1,15 +1,9 @@
 from fastapi import APIRouter, Depends
-
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
-from app.dependencies import get_db, get_current_user
-
-from app.models.user import User
-
-from app.services.dashboard_service import get_dashboard_summary
-
-from app.cache import get_cache, set_cache
-
+from app.database import get_db
+from app.models.invoice import Invoice
 
 router = APIRouter(
     prefix="/analytics",
@@ -17,49 +11,39 @@ router = APIRouter(
 )
 
 
-# =====================================================
-# Dashboard Summary API
-# =====================================================
-
 @router.get("/summary")
-def dashboard_summary(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def analytics_summary(db: Session = Depends(get_db)):
 
-    # -------------------------
-    # Check Redis Cache
-    # -------------------------
+    total_invoices = db.query(Invoice).count()
 
-    cached_data = get_cache(
-        "dashboard_summary"
+    total_amount = (
+        db.query(func.sum(Invoice.amount))
+        .scalar()
+        or 0
     )
 
-
-    if cached_data:
-
-        return cached_data
-
-
-
-    # -------------------------
-    # Database Calculation
-    # -------------------------
-
-    data = get_dashboard_summary(
-        db
+    pending = (
+        db.query(Invoice)
+        .filter(Invoice.status == "Pending")
+        .count()
     )
 
-
-    # -------------------------
-    # Save Cache
-    # -------------------------
-
-    set_cache(
-        "dashboard_summary",
-        data,
-        expire=300
+    approved = (
+        db.query(Invoice)
+        .filter(Invoice.status == "Approved")
+        .count()
     )
 
+    rejected = (
+        db.query(Invoice)
+        .filter(Invoice.status == "Rejected")
+        .count()
+    )
 
-    return data
+    return {
+        "total_invoices": total_invoices,
+        "total_amount": float(total_amount),
+        "pending": pending,
+        "approved": approved,
+        "rejected": rejected
+    }

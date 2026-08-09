@@ -16,13 +16,25 @@ services:
         - backend
 
     grafana:
+
       image: grafana/grafana
+
       container_name: vendor-grafana
 
+      environment:
+
+        - GF_SECURITY_ADMIN_PASSWORD=admin
+
+        - GF_AUTH_ANONYMOUS_ENABLED=true
+
+        - GF_SECURITY_ALLOW_EMBEDDING=true
+
       ports:
+
         - "3000:3000"
 
       depends_on:
+
         - prometheus
 
     postgres:
@@ -69,3 +81,4 @@ services:
 
 volumes:
   postgres_data:
+  grafana_data:

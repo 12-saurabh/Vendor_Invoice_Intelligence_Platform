@@ -1,41 +1,57 @@
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
 
-from app.services.export_service import *
+from app.services.export_service import (
+    export_csv,
+    export_excel,
+    export_pdf
+)
+
 from app.database import get_db
 from app.models.invoice import Invoice
 
 
-router=APIRouter()
+router = APIRouter(
+    prefix="/export",
+    tags=["Export"]
+)
 
 
-@router.get("/export/csv")
-def csv_export(db=Depends(get_db)):
+@router.get("/csv")
+def csv_export(db: Session = Depends(get_db)):
+    invoices = db.query(Invoice).all()
 
-    invoices=db.query(Invoice).all()
+    file = export_csv(invoices)
 
-    file=export_csv(invoices)
-
-    return FileResponse(file)
-
-
-
-@router.get("/export/excel")
-def excel_export(db=Depends(get_db)):
-
-    invoices=db.query(Invoice).all()
-
-    file=export_excel(invoices)
-
-    return FileResponse(file)
+    return FileResponse(
+        file,
+        filename="Invoices.csv",
+        media_type="text/csv"
+    )
 
 
+@router.get("/excel")
+def excel_export(db: Session = Depends(get_db)):
+    invoices = db.query(Invoice).all()
 
-@router.get("/export/pdf")
-def pdf_export(db=Depends(get_db)):
+    file = export_excel(invoices)
 
-    invoices=db.query(Invoice).all()
+    return FileResponse(
+        file,
+        filename="Invoices.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
-    file=export_pdf(invoices)
 
-    return FileResponse(file)
+@router.get("/pdf")
+def pdf_export(db: Session = Depends(get_db)):
+    invoices = db.query(Invoice).all()
+
+    file = export_pdf(invoices)
+
+    return FileResponse(
+        file,
+        filename="Invoices.pdf",
+        media_type="application/pdf"
+    )
