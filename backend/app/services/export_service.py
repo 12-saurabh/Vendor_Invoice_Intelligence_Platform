@@ -1,65 +1,101 @@
 import os
+import tempfile
+
 import pandas as pd
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+)
 
 
-EXPORT_DIR = "exports"
-os.makedirs(EXPORT_DIR, exist_ok=True)
+def invoice_to_dict(invoice):
+    return {
+        "Invoice ID": invoice.id,
+        "Invoice Number": invoice.invoice_number,
+        "Vendor": invoice.vendor_name,
+        "Amount": invoice.amount,
+        "Currency": invoice.currency,
+        "Status": invoice.status,
+        "Risk Score": invoice.risk_score,
+        "Risk Level": invoice.risk_level,
+        "Fraud Detected": invoice.fraud_detected,
+        "Duplicate Invoice": invoice.duplicate_invoice,
+    }
 
 
 def export_csv(invoices):
-    data = []
-
-    for invoice in invoices:
-        data.append({
-            "Invoice ID": invoice.id,
-            "Invoice Number": invoice.invoice_number,
-            "Vendor": invoice.vendor_name,
-            "Amount": invoice.amount,
-            "Currency": invoice.currency,
-            "Status": invoice.status,
-            "Risk Score": invoice.risk_score,
-            "Risk Level": invoice.risk_level,
-            "Fraud Detected": invoice.fraud_detected,
-            "Duplicate Invoice": invoice.duplicate_invoice,
-        })
+    data = [
+        invoice_to_dict(invoice)
+        for invoice in invoices
+    ]
 
     df = pd.DataFrame(data)
 
-    path = os.path.join(EXPORT_DIR, "invoices.csv")
+    fd, path = tempfile.mkstemp(
+        suffix=".csv",
+        prefix="invoices_"
+    )
+
+    os.close(fd)
+
     df.to_csv(path, index=False)
 
     return path
 
 
 def export_excel(invoices):
-    data = []
-
-    for invoice in invoices:
-        data.append({
-            "Invoice ID": invoice.id,
-            "Invoice Number": invoice.invoice_number,
-            "Vendor": invoice.vendor_name,
-            "Amount": invoice.amount,
-            "Currency": invoice.currency,
-            "Status": invoice.status,
-            "Risk Score": invoice.risk_score,
-            "Risk Level": invoice.risk_level,
-            "Fraud Detected": invoice.fraud_detected,
-            "Duplicate Invoice": invoice.duplicate_invoice,
-        })
+    data = [
+        invoice_to_dict(invoice)
+        for invoice in invoices
+    ]
 
     df = pd.DataFrame(data)
 
-    path = os.path.join(EXPORT_DIR, "invoices.xlsx")
-    df.to_excel(path, index=False)
+    fd, path = tempfile.mkstemp(
+        suffix=".xlsx",
+        prefix="invoices_"
+    )
+
+    os.close(fd)
+
+    df.to_excel(
+        path,
+        index=False,
+        engine="openpyxl"
+    )
 
     return path
 
 
 def export_pdf(invoices):
-    path = os.path.join(EXPORT_DIR, "invoices.pdf")
+    fd, path = tempfile.mkstemp(
+        suffix=".pdf",
+        prefix="invoices_"
+    )
+
+    os.close(fd)
+
+    document = SimpleDocTemplate(
+        path,
+        pagesize=landscape(A4),
+        rightMargin=20,
+        leftMargin=20,
+        topMargin=20,
+        bottomMargin=20,
+    )
+
+    styles = getSampleStyleSheet()
+
+    title = Paragraph(
+        "Vendor Invoice Report",
+        styles["Title"]
+    )
 
     rows = [
         [
@@ -70,36 +106,85 @@ def export_pdf(invoices):
             "Currency",
             "Status",
             "Risk",
-            "Risk Level"
+            "Risk Level",
         ]
     ]
 
     for invoice in invoices:
-        rows.append([
-            str(invoice.id),
-            str(invoice.invoice_number),
-            str(invoice.vendor_name or ""),
-            str(invoice.amount),
-            str(invoice.currency or ""),
-            str(invoice.status),
-            str(invoice.risk_score or 0),
-            str(invoice.risk_level or "Low"),
-        ])
+        rows.append(
+            [
+                str(invoice.id),
+                str(invoice.invoice_number),
+                str(invoice.vendor_name or ""),
+                str(invoice.amount),
+                str(invoice.currency or ""),
+                str(invoice.status),
+                str(invoice.risk_score or 0),
+                str(invoice.risk_level or "Low"),
+            ]
+        )
 
-    pdf = SimpleDocTemplate(path)
-
-    table = Table(rows)
-
-    table.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ])
+    table = Table(
+        rows,
+        repeatRows=1
     )
 
-    pdf.build([table])
+    table.setStyle(
+        TableStyle(
+            [
+                (
+                    "BACKGROUND",
+                    (0, 0),
+                    (-1, 0),
+                    colors.grey,
+                ),
+                (
+                    "TEXTCOLOR",
+                    (0, 0),
+                    (-1, 0),
+                    colors.white,
+                ),
+                (
+                    "FONTNAME",
+                    (0, 0),
+                    (-1, 0),
+                    "Helvetica-Bold",
+                ),
+                (
+                    "GRID",
+                    (0, 0),
+                    (-1, -1),
+                    0.5,
+                    colors.black,
+                ),
+                (
+                    "FONTSIZE",
+                    (0, 0),
+                    (-1, -1),
+                    8,
+                ),
+                (
+                    "ALIGN",
+                    (0, 0),
+                    (-1, -1),
+                    "CENTER",
+                ),
+                (
+                    "VALIGN",
+                    (0, 0),
+                    (-1, -1),
+                    "MIDDLE",
+                ),
+            ]
+        )
+    )
+
+    document.build(
+        [
+            title,
+            table,
+        ]
+    )
 
     return path
+

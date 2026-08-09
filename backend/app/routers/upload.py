@@ -20,7 +20,7 @@ from app.dependencies import (
 
 
 from app.models.user import User
-
+from app.services.notification_service import notify_invoice_uploaded
 
 from app.crud.invoice import create_invoice
 
@@ -85,7 +85,7 @@ ALLOWED_TYPES = [
 
 
 @router.post("/")
-def upload_invoice(
+async def upload_invoice(
 
     file: UploadFile = File(...),
 
@@ -228,6 +228,12 @@ def upload_invoice(
 
         invoice_data
 
+    )
+    
+    await notify_invoice_uploaded(
+        invoice_id=invoice.id,
+        invoice_number=invoice.invoice_number,
+        file_name=invoice.file_name,
     )
 
 

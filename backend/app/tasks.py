@@ -403,11 +403,74 @@ Thank You.
         # WebSocket Dashboard Update
         # ---------------------------------
 
-        asyncio.run(
-            manager.send_message(
-                f"Invoice {invoice.invoice_number} processed successfully."
+
+        if duplicate:
+
+            websocket_message = {
+                "type": "INVOICE_APPROVAL_REQUIRED",
+                "message": (
+                    f"Invoice {invoice.invoice_number} "
+                    "appears to be a duplicate."
+                ),
+                "invoice_id": invoice.id,
+                "invoice_number": invoice.invoice_number,
+                "status": final_status,
+                "risk_score": invoice.risk_score,
+                "risk_level": invoice.risk_level,
+            }
+
+
+        elif risk["fraud"]:
+
+            websocket_message = {
+                "type": "FRAUD_RISK_DETECTED",
+                "message": (
+                    f"Invoice {invoice.invoice_number} "
+                    "has high fraud risk."
+                ),
+                "invoice_id": invoice.id,
+                "invoice_number": invoice.invoice_number,
+                "status": final_status,
+                "risk_score": invoice.risk_score,
+                "risk_level": invoice.risk_level,
+            }
+
+
+        elif validation_errors:
+
+            websocket_message = {
+                "type": "INVOICE_MANUAL_REVIEW",
+                "message": (
+                    f"Invoice {invoice.invoice_number} "
+                    "requires manual review."
+                ),
+                "invoice_id": invoice.id,
+                "invoice_number": invoice.invoice_number,
+                "status": final_status,
+            }
+
+
+        else:
+
+            websocket_message = {
+                "type": "PREDICTION_COMPLETED",
+                "message": (
+                    f"Invoice {invoice.invoice_number} "
+                    "processed successfully."
+                ),
+                "invoice_id": invoice.id,
+                "invoice_number": invoice.invoice_number,
+                "status": final_status,
+                "risk_score": invoice.risk_score,
+                "risk_level": invoice.risk_level,
+                "vendor_score": invoice.vendor_score,
+            }
+
+
+            asyncio.run(
+                manager.broadcast(websocket_message)
             )
-        )
+
 
 
 
@@ -488,6 +551,24 @@ Thank You.
                     "processing failed."
                 )
 
+            )
+            
+        if invoice:
+
+            asyncio.run(
+                manager.broadcast(
+                    {
+                        "type": "INVOICE_PROCESSING_FAILED",
+                        "message": (
+                            f"Invoice {invoice.invoice_number} "
+                            "processing failed."
+                        ),
+                        "invoice_id": invoice.id,
+                        "invoice_number": invoice.invoice_number,
+                        "status": "Failed",
+                        "error": str(e),
+                    }
+                )
             )
 
 
