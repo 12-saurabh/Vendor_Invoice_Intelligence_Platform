@@ -1,12 +1,9 @@
-__pycache__/
+**pycache**/
 *.pyc
-
 venv/
 .env
-
 .idea/
 .vscode/
-
 .pytest_cache/
-
-*.sqlite3frontend/.env.production
+*.sqlite3
+frontend/.env.production
