@@ -8,3 +8,5 @@ venv/
 *.sqlite3
 frontend/.env.productionbackend/uploads/
 backend/exports/
+backend/uploads/
+backend/exports/
